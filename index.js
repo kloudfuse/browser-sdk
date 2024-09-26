@@ -18,7 +18,7 @@ const initDDBrowserSdk = ({ config, user }) => {
     site,
     service: 'kf-frontend',
     sessionSampleRate: 100,
-    sessionReplaySampleRate: 20,
+    sessionReplaySampleRate: 0,
     trackUserInteractions: true,
     trackResources: true,
     trackLongTasks: true,
