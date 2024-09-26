@@ -12,13 +12,13 @@ const findStartAndEnd = (rrwebEvents) => {
   };
 };
 
-const useRrweb = ({ replayIngestUrl }) => {
+const useRrweb = () => {
   const indexRef = useRef(0);
   const rrwebEventsRef = useRef([]);
   const stopRecordingRef = useRef(null);
   const tabIdRef = useRef(v4());
 
-  const saveEvents = () => {
+  const saveEvents = (replayIngestUrl) => () => {
     const rrwebEvents = [...rrwebEventsRef.current];
     const index = indexRef.current;
 
@@ -63,7 +63,7 @@ const useRrweb = ({ replayIngestUrl }) => {
     }
   };
 
-  const init = () => {
+  const init = ({ replayIngestUrl }) => {
     stopRecordingRef.current = record({
       emit: (event) => {
         rrwebEventsRef.current = [...rrwebEventsRef.current, event];
@@ -72,7 +72,7 @@ const useRrweb = ({ replayIngestUrl }) => {
     });
 
     setInterval(() => {
-      requestAnimationFrame(saveEvents);
+      requestAnimationFrame(saveEvents(replayIngestUrl));
     }, 5000);
   };
 

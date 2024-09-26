@@ -41,12 +41,12 @@ const initDDBrowserSdk = ({ config, user }) => {
 };
 
 
-const useBrowserSdk = ({ config, user }) => {
-  const rrweb = useRrweb({ replayIngestUrl: config.replayIngestUrl });
+const useBrowserSdk = () => {
+  const rrweb = useRrweb();
 
-  const init = () => {
+  const init = ({ config, user }) => {
     initDDBrowserSdk({ config, user });
-    rrweb.init();
+    rrweb.init({ replayIngestUrl: config.replayIngestUrl });
   };
 
   return {

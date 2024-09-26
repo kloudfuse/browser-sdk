@@ -1,6 +1,6 @@
 {
-  "name": "@kloudfuse/browser-sdk",
-  "version": "1.0.0",
+  "name": "kf-browser-sdk",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
