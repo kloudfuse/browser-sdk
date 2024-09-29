@@ -1,32 +1,24 @@
 import { datadogRum } from '@datadog/browser-rum';
 import useRrweb from './useRrweb';
 
-const initDDBrowserSdk = ({ config, user }) => {
-  const {
-    applicationId,
-    clientToken,
-    env,
-    proxy,
-    site,
-  } = config;
-
+const initDDBrowserSdk = ({ config, shouldInitRrweb, user }) => {
   const ddConfig = {
-    applicationId,
-    clientToken,
+    ...config,
     defaultPrivacyLevel: 'mask-user-input',
-    env,
-    site,
     service: 'kf-frontend',
     sessionSampleRate: 100,
     sessionReplaySampleRate: 0,
     trackUserInteractions: true,
     trackResources: true,
     trackLongTasks: true,
-  };
+    beforeSend: (event) => {
+      if (event.type === 'view' && shouldInitRrweb) {
+        event.session.has_replay = true;
+      }
 
-  if (proxy) {
-    ddConfig.proxy = proxy;
-  }
+      return true;
+    },
+  };
 
   datadogRum.init(ddConfig);
 
@@ -45,10 +37,13 @@ const useBrowserSdk = () => {
   const rrweb = useRrweb();
 
   const init = ({ config, user }) => {
-    initDDBrowserSdk({ config, user });
+    const { replayIngestUrl, ...ddConfig } = config;
+    const shouldInitRrweb =  replayIngestUrl;
 
-    if (config.replayIngestUrl) {
-      rrweb.init({ replayIngestUrl: config.replayIngestUrl });
+    initDDBrowserSdk({ config: ddConfig, shouldInitRrweb, user });
+
+    if (shouldInitRrweb) {
+      rrweb.init({ replayIngestUrl });
     }
   };
 
