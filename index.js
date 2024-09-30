@@ -13,9 +13,10 @@ const initDDBrowserSdk = ({ config, shouldInitRrweb, tabId, user }) => {
     trackResources: true,
     trackLongTasks: true,
     beforeSend: (event) => {
+      event.context.tabId = tabId;
+
       if (event.type === 'view' && shouldInitRrweb) {
         event.context.has_replay = true;
-        event.context.tabId = tabId;
       }
 
       return true;
