@@ -16,7 +16,7 @@ const initDDBrowserSdk = ({ config, shouldInitRrweb, tabId, user }) => {
       event.context.rrweb_tab_id = tabId;
 
       if (shouldInitRrweb) {
-        event.context.has_rrweb_replay = true;
+        event.context.rrweb_has_replay = true;
       }
 
       return true;
