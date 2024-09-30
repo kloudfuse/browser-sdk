@@ -1,7 +1,8 @@
 import { datadogRum } from '@datadog/browser-rum';
 import useRrweb from './useRrweb';
+import { v4 } from 'uuid';
 
-const initDDBrowserSdk = ({ config, shouldInitRrweb, user }) => {
+const initDDBrowserSdk = ({ config, shouldInitRrweb, tabId, user }) => {
   const ddConfig = {
     ...config,
     defaultPrivacyLevel: 'mask-user-input',
@@ -14,6 +15,7 @@ const initDDBrowserSdk = ({ config, shouldInitRrweb, user }) => {
     beforeSend: (event) => {
       if (event.type === 'view' && shouldInitRrweb) {
         event.context.has_replay = true;
+        event.context.tabId = tabId;
       }
 
       return true;
@@ -37,13 +39,14 @@ const useBrowserSdk = () => {
   const rrweb = useRrweb();
 
   const init = ({ config, user }) => {
+    const tabId = v4();
     const { replayIngestUrl, ...ddConfig } = config;
     const shouldInitRrweb =  replayIngestUrl;
 
-    initDDBrowserSdk({ config: ddConfig, shouldInitRrweb, user });
+    initDDBrowserSdk({ config: ddConfig, shouldInitRrweb, tabId, user });
 
     if (shouldInitRrweb) {
-      rrweb.init({ replayIngestUrl });
+      rrweb.init({ replayIngestUrl, tabId });
     }
   };
 

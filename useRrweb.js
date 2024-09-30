@@ -1,7 +1,7 @@
 import { datadogRum } from '@datadog/browser-rum';
 import { useRef } from 'react';
 import { record } from 'rrweb';
-import { v4 } from 'uuid';
+
 
 const findStartAndEnd = (rrwebEvents) => {
   const start = rrwebEvents[0].timestamp;
@@ -16,9 +16,8 @@ const useRrweb = () => {
   const indexRef = useRef(0);
   const rrwebEventsRef = useRef([]);
   const stopRecordingRef = useRef(null);
-  const tabIdRef = useRef(v4());
 
-  const saveEvents = (replayIngestUrl) => () => {
+  const saveEvents = ({ replayIngestUrl, tabId }) => () => {
     const rrwebEvents = [...rrwebEventsRef.current];
     const index = indexRef.current;
 
@@ -38,7 +37,7 @@ const useRrweb = () => {
         end,
         start,
         tab: {
-          id: tabIdRef.current,
+          id: tabId,
         },
         view: {
           id: view.id,
@@ -63,7 +62,7 @@ const useRrweb = () => {
     }
   };
 
-  const init = ({ replayIngestUrl }) => {
+  const init = ({ replayIngestUrl, tabId }) => {
     stopRecordingRef.current = record({
       emit: (event) => {
         rrwebEventsRef.current = [...rrwebEventsRef.current, event];
@@ -72,7 +71,7 @@ const useRrweb = () => {
     });
 
     setInterval(() => {
-      requestAnimationFrame(saveEvents(replayIngestUrl));
+      requestAnimationFrame(saveEvents({ replayIngestUrl, tabId }));
     }, 5000);
   };
 
