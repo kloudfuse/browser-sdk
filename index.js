@@ -13,7 +13,7 @@ const initDDBrowserSdk = ({ config, shouldInitRrweb, user }) => {
     trackLongTasks: true,
     beforeSend: (event) => {
       if (event.type === 'view' && shouldInitRrweb) {
-        event.session.has_replay = true;
+        event.context.has_replay = true;
       }
 
       return true;
