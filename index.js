@@ -8,7 +8,7 @@ const initDDBrowserSdk = ({ config, shouldInitRrweb, tabId, user }) => {
     defaultPrivacyLevel: 'mask-user-input',
     service: 'kf-frontend',
     sessionSampleRate: 100,
-    sessionReplaySampleRate: 0,
+    sessionReplaySampleRate: shouldInitRrweb ? 100 : 0,
     trackUserInteractions: true,
     trackResources: true,
     trackLongTasks: true,
