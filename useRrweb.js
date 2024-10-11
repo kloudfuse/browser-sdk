@@ -116,6 +116,7 @@ const useRrweb = () => {
 
   const startRecording = () => {
     stopRecordingRef.current = record({
+      checkoutEveryNms: 1 * 60 * 1000, // checkout every minute
       emit: (event) => {
         rrwebEventsRef.current = [...rrwebEventsRef.current, event];
       },
