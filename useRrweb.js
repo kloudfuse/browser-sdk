@@ -13,24 +13,61 @@ const findStartAndEnd = (rrwebEvents) => {
 };
 
 const useRrweb = () => {
+  const datadogRumContextRef = useRef({
+    applicationId: null,
+    sessionId: null,
+    viewId: null,
+  });
+
   const indexRef = useRef(0);
   const rrwebEventsRef = useRef([]);
   const stopRecordingRef = useRef(null);
 
-  const saveEvents = ({ replayIngestUrl, tabId }) => () => {
-    const rrwebEvents = [...rrwebEventsRef.current];
-    const index = indexRef.current;
+  const initDatadogContextInterval = ({ replayIngestUrl, tabId }) => {
+    setInterval(() => {
+      const context = datadogRum.getInternalContext();
+      if (context && context.session_id) {
+        const { application_id, session_id, view } = context;
 
+        // we should start a new replay recording
+        if (session_id !== datadogRumContextRef.current.sessionId) {
+          const stopRecording = stopRecordingRef.current;
+          if (stopRecording) {
+            try {
+              stopRecording();
+            } catch (e) {
+              // Do something
+            }
+          }
+
+          const rrwebEvents = [...rrwebEventsRef.current];
+          const index = indexRef.current;
+          persistEvents({ index, replayIngestUrl, rrwebEvents, tabId })
+          rrwebEventsRef.current = [];
+
+          indexRef.current = 0;
+          startRecording();
+        }
+
+        datadogRumContextRef.current = {
+          applicationId: application_id,
+          sessionId: session_id,
+          viewId: view.id,
+        };
+      }
+    }, 1000);
+  };
+
+  const persistEvents = ({ index, replayIngestUrl, rrwebEvents, tabId }) => {
     if (rrwebEvents.length) {
-      const { application_id, session_id, view } =
-        datadogRum.getInternalContext();
+      const { applicationId, sessionId, viewId } = datadogRumContextRef.current;
       const { start, end } = findStartAndEnd(rrwebEvents);
       const event = {
         application: {
-          id: application_id,
+          id: applicationId,
         },
         session: {
-          id: session_id,
+          id: sessionId,
         },
         index,
 
@@ -40,7 +77,7 @@ const useRrweb = () => {
           id: tabId,
         },
         view: {
-          id: view.id,
+          id: viewId,
         },
       };
 
@@ -56,27 +93,38 @@ const useRrweb = () => {
         method: 'POST',
         body: formData,
       });
-
-      rrwebEventsRef.current = [];
-      indexRef.current = index + 1;
     }
   };
 
+  const saveEvents = ({ replayIngestUrl, tabId }) => () => {
+    const rrwebEvents = [...rrwebEventsRef.current];
+    const index = indexRef.current;
+
+    persistEvents({ index, replayIngestUrl, rrwebEvents, tabId });
+
+    rrwebEventsRef.current = [];
+    indexRef.current = index + 1;
+  }
+
   const init = ({ replayIngestUrl, tabId }) => {
-    stopRecordingRef.current = record({
-      emit: (event) => {
-        rrwebEventsRef.current = [...rrwebEventsRef.current, event];
-      },
-      recordCanvas: true,
-    });
+    initDatadogContextInterval({ replayIngestUrl, tabId });
 
     setInterval(() => {
       requestAnimationFrame(saveEvents({ replayIngestUrl, tabId }));
     }, 5000);
   };
 
+  const startRecording = () => {
+    stopRecordingRef.current = record({
+      emit: (event) => {
+        rrwebEventsRef.current = [...rrwebEventsRef.current, event];
+      },
+      recordCanvas: true,
+    });
+  };
+
   const stopRecording = () => {
-    return stopRecordingRef.current || (() => {});
+    return stopRecordingRef.current || (() => { });
   };
 
   return {
