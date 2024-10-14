@@ -42,8 +42,11 @@ const useRrweb = () => {
 
           const rrwebEvents = [...rrwebEventsRef.current];
           const index = indexRef.current;
-          persistEvents({ index, replayIngestUrl, rrwebEvents, tabId })
-          rrwebEventsRef.current = [];
+
+          if (rrwebEvents.length) {
+            persistEvents({ index, replayIngestUrl, rrwebEvents, tabId })
+            rrwebEventsRef.current = [];
+          }
 
           indexRef.current = 0;
           startRecording();
@@ -100,10 +103,12 @@ const useRrweb = () => {
     const rrwebEvents = [...rrwebEventsRef.current];
     const index = indexRef.current;
 
-    persistEvents({ index, replayIngestUrl, rrwebEvents, tabId });
+    if (rrwebEvents.length) {
+      persistEvents({ index, replayIngestUrl, rrwebEvents, tabId });
 
-    rrwebEventsRef.current = [];
-    indexRef.current = index + 1;
+      rrwebEventsRef.current = [];
+      indexRef.current = index + 1;
+    }
   }
 
   const init = ({ replayIngestUrl, tabId }) => {
