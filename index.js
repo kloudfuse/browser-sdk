@@ -1,8 +1,9 @@
-import Cookies from 'js-cookie';
 import { datadogLogs } from '@datadog/browser-logs';
 import { datadogRum } from '@datadog/browser-rum';
-import useRrweb from './useRrweb';
+import Cookies from 'js-cookie';
+import { useRef } from 'react';
 import { v4 } from 'uuid';
+import useRrweb from './useRrweb';
 
 const SESSION_STORE_KEY = '_dd_s';
 const SESSION_ENTRY_REGEXP = /^([a-zA-Z]+)=([a-z0-9-]+)$/;
