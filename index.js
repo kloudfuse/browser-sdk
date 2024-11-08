@@ -1,4 +1,5 @@
 import Cookies from 'js-cookie';
+import { datadogLogs } from '@datadog/browser-logs';
 import { datadogRum } from '@datadog/browser-rum';
 import useRrweb from './useRrweb';
 import { v4 } from 'uuid';
@@ -79,6 +80,17 @@ const useBrowserSdk = () => {
     if (enableSessionRecording && shouldInitRrweb && replayIngestUrl) {
       rrweb.init({ replayIngestUrl, tabId });
       hasReplayBeenInitedRef.current = true;
+    }
+
+    if (enableLogCollection) {
+      datadogLogs.init({
+        clientToken: ddConfig.clientToken,
+        proxy: ddConfig.proxy,
+        site: ddConfig.site,
+        forwardErrorsToLogs: true,
+        forwardConsoleLogs: 'all',
+        sessionSampleRate: 100,
+      });
     }
   };
 
