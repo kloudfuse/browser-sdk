@@ -1,142 +1,120 @@
+import { datadogLogs } from '@datadog/browser-logs';
 import { datadogRum } from '@datadog/browser-rum';
+import Cookies from 'js-cookie';
 import { useRef } from 'react';
-import { record } from 'rrweb';
+import { v4 } from 'uuid';
+import useRrweb from './useRrweb';
 
+const SESSION_STORE_KEY = '_dd_s';
+const SESSION_ENTRY_REGEXP = /^([a-zA-Z]+)=([a-z0-9-]+)$/;
+const SESSION_ENTRY_SEPARATOR = '&';
 
-const findStartAndEnd = (rrwebEvents) => {
-  const start = rrwebEvents[0].timestamp;
-  const end = rrwebEvents[rrwebEvents.length - 1].timestamp;
-  return {
-    start,
-    end,
-  };
+const toSessionState = (sessionString) => {
+  const session = {};
+  if (isValidSessionString(sessionString)) {
+    sessionString.split(SESSION_ENTRY_SEPARATOR).forEach((entry) => {
+      const matches = SESSION_ENTRY_REGEXP.exec(entry);
+      if (matches !== null) {
+        const [, key, value] = matches;
+        session[key] = value;
+      }
+    });
+  }
+  return session;
 };
 
-const useRrweb = () => {
-  const datadogRumContextRef = useRef({
-    applicationId: null,
-    sessionId: null,
-    viewId: null,
-  });
+const isValidSessionString = (sessionString) => {
+  return (
+    !!sessionString &&
+    (sessionString.indexOf(SESSION_ENTRY_SEPARATOR) !== -1 ||
+      SESSION_ENTRY_REGEXP.test(sessionString))
+  );
+};
 
-  const indexRef = useRef(0);
-  const rrwebEventsRef = useRef([]);
-  const stopRecordingRef = useRef(null);
+const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId }) => {
+  const ddConfig = {
+    applicationId: config.applicationId,
+    clientToken: config.clientToken,
+    defaultPrivacyLevel: 'mask-user-input',
+    env: config.env,
+    proxy: config.proxy,
+    service: config.service,
+    sessionSampleRate: config.sessionSampleRate,
+    site: config.site,
+    sessionReplaySampleRate: 0,
+    trackUserInteractions: true,
+    trackResources: true,
+    trackLongTasks: true,
+    version: config.version,
+    beforeSend: (event) => {
+      event.context.rrweb_tab_id = tabId;
 
-  const initDatadogContextInterval = ({ replayIngestUrl, tabId }) => {
-    setInterval(() => {
-      const context = datadogRum.getInternalContext();
-      if (context && context.session_id) {
-        const { application_id, session_id, view } = context;
-
-        // we should start a new replay recording
-        if (session_id !== datadogRumContextRef.current.sessionId) {
-          const stopRecording = stopRecordingRef.current;
-          if (stopRecording) {
-            try {
-              stopRecording();
-            } catch (e) {
-              // Do something
-            }
-          }
-
-          const rrwebEvents = [...rrwebEventsRef.current];
-          const index = indexRef.current;
-
-          if (rrwebEvents.length) {
-            persistEvents({ index, replayIngestUrl, rrwebEvents, tabId })
-            rrwebEventsRef.current = [];
-          }
-
-          indexRef.current = 0;
-          startRecording();
-        }
-
-        datadogRumContextRef.current = {
-          applicationId: application_id,
-          sessionId: session_id,
-          viewId: view.id,
-        };
+      if (hasReplayBeenInitedRef.current) {
+        event.context.rrweb_has_replay = true;
       }
-    }, 1000);
+
+      return true;
+    },
   };
 
-  const persistEvents = ({ index, replayIngestUrl, rrwebEvents, tabId }) => {
-    if (rrwebEvents.length) {
-      const { applicationId, sessionId, viewId } = datadogRumContextRef.current;
-      const { start, end } = findStartAndEnd(rrwebEvents);
-      const event = {
-        application: {
-          id: applicationId,
-        },
-        session: {
-          id: sessionId,
-        },
-        index,
+  datadogRum.init(ddConfig);
+};
 
-        end,
-        start,
-        tab: {
-          id: tabId,
-        },
-        view: {
-          id: viewId,
-        },
-      };
+const getShouldInitRrweb = () => {
+  const sessionString = Cookies.get(SESSION_STORE_KEY);
+  const sessionState = toSessionState(sessionString);
+  return typeof sessionState.rum && Number(sessionState.rum) > 0;
+};
 
-      const segment = {
-        rrwebEvents,
-      };
+const useBrowserSdk = () => {
+  const hasReplayBeenInitedRef = useRef();
+  const rrweb = useRrweb();
 
-      const formData = new FormData();
-      formData.append('event', JSON.stringify(event));
-      formData.append('segment', JSON.stringify(segment));
+  const init = ({ config }) => {
+    const tabId = v4();
+    const {
+      enableLogCollection,
+      enableSessionRecording,
+      replayIngestUrl,
+      ...ddConfig
+    } = config;
 
-      fetch(replayIngestUrl, {
-        method: 'POST',
-        body: formData,
+    initDDBrowserSdk({ config: ddConfig, hasReplayBeenInitedRef, tabId });
+
+    const shouldInitRrweb = getShouldInitRrweb();
+
+    console.log(enableSessionRecording, shouldInitRrweb, replayIngestUrl);
+
+    if (enableSessionRecording && shouldInitRrweb && replayIngestUrl) {
+      rrweb.init({ replayIngestUrl, tabId });
+      hasReplayBeenInitedRef.current = true;
+    }
+
+    if (enableLogCollection) {
+      datadogLogs.init({
+        clientToken: ddConfig.clientToken,
+        proxy: ddConfig.proxy,
+        site: ddConfig.site,
+        forwardErrorsToLogs: true,
+        forwardConsoleLogs: 'all',
+        sessionSampleRate: 100,
       });
     }
   };
 
-  const saveEvents = ({ replayIngestUrl, tabId }) => () => {
-    const rrwebEvents = [...rrwebEventsRef.current];
-    const index = indexRef.current;
+  const setUser = (user) => {
+    const { id, email } = user;
 
-    if (rrwebEvents.length) {
-      persistEvents({ index, replayIngestUrl, rrwebEvents, tabId });
-
-      rrwebEventsRef.current = [];
-      indexRef.current = index + 1;
-    }
-  }
-
-  const init = ({ replayIngestUrl, tabId }) => {
-    initDatadogContextInterval({ replayIngestUrl, tabId });
-
-    setInterval(() => {
-      requestAnimationFrame(saveEvents({ replayIngestUrl, tabId }));
-    }, 5000);
-  };
-
-  const startRecording = () => {
-    stopRecordingRef.current = record({
-      checkoutEveryNms: 1 * 60 * 1000, // checkout every minute
-      emit: (event) => {
-        rrwebEventsRef.current = [...rrwebEventsRef.current, event];
-      },
-      recordCanvas: true,
+    datadogRum.setUser({
+      id,
+      email,
     });
-  };
-
-  const stopRecording = () => {
-    return stopRecordingRef.current || (() => { });
   };
 
   return {
     init,
-    stopRecording,
+    setUser,
   };
 };
 
-export default useRrweb;
+export default useBrowserSdk;
