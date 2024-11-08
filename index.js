@@ -31,14 +31,19 @@ const isValidSessionString = (sessionString) => {
 
 const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId, user }) => {
   const ddConfig = {
-    ...config,
+    applicationId: config.applicationId,
+    clientToken: config.clientToken,
     defaultPrivacyLevel: 'mask-user-input',
-    service: 'kf-frontend',
-    sessionSampleRate: 0,
+    env: config.env,
+    proxy: config.proxy,
+    service: config.service,
+    sessionSampleRate: config.sessionSampleRate,
+    site: config.site,
     sessionReplaySampleRate: 0,
     trackUserInteractions: true,
     trackResources: true,
     trackLongTasks: true,
+    version: config.version,
     beforeSend: (event) => {
       event.context.rrweb_tab_id = tabId;
 
@@ -51,13 +56,6 @@ const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId, user }) => {
   };
 
   datadogRum.init(ddConfig);
-
-  const { id, email } = user;
-
-  datadogRum.setUser({
-    id,
-    email,
-  });
 };
 
 const getShouldInitRrweb = () => {
@@ -84,8 +82,18 @@ const useBrowserSdk = () => {
     }
   };
 
+  const setUser = (user) => {
+    const { id, email } = user;
+
+    datadogRum.setUser({
+      id,
+      email,
+    });
+  };
+
   return {
     init,
+    setUser,
   };
 };
 
