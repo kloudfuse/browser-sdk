@@ -1,21 +1,48 @@
+import Cookies from 'js-cookie';
 import { datadogRum } from '@datadog/browser-rum';
 import useRrweb from './useRrweb';
 import { v4 } from 'uuid';
 
-const initDDBrowserSdk = ({ config, shouldInitRrweb, tabId, user }) => {
+const SESSION_STORE_KEY = '_dd_s';
+const SESSION_ENTRY_REGEXP = /^([a-zA-Z]+)=([a-z0-9-]+)$/;
+const SESSION_ENTRY_SEPARATOR = '&';
+
+const toSessionState = (sessionString) => {
+  const session = {};
+  if (isValidSessionString(sessionString)) {
+    sessionString.split(SESSION_ENTRY_SEPARATOR).forEach((entry) => {
+      const matches = SESSION_ENTRY_REGEXP.exec(entry);
+      if (matches !== null) {
+        const [, key, value] = matches;
+        session[key] = value;
+      }
+    });
+  }
+  return session;
+};
+
+const isValidSessionString = (sessionString) => {
+  return (
+    !!sessionString &&
+    (sessionString.indexOf(SESSION_ENTRY_SEPARATOR) !== -1 ||
+      SESSION_ENTRY_REGEXP.test(sessionString))
+  );
+};
+
+const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId, user }) => {
   const ddConfig = {
     ...config,
     defaultPrivacyLevel: 'mask-user-input',
     service: 'kf-frontend',
-    sessionSampleRate: 100,
-    sessionReplaySampleRate: shouldInitRrweb ? 100 : 0,
+    sessionSampleRate: 0,
+    sessionReplaySampleRate: 0,
     trackUserInteractions: true,
     trackResources: true,
     trackLongTasks: true,
     beforeSend: (event) => {
       event.context.rrweb_tab_id = tabId;
 
-      if (shouldInitRrweb) {
+      if (hasReplayBeenInitedRef.current) {
         event.context.rrweb_has_replay = true;
       }
 
@@ -31,23 +58,29 @@ const initDDBrowserSdk = ({ config, shouldInitRrweb, tabId, user }) => {
     id,
     email,
   });
-
-  datadogRum.startSessionReplayRecording();
 };
 
+const getShouldInitRrweb = () => {
+  const sessionString = Cookies.get(SESSION_STORE_KEY);
+  const sessionState = toSessionState(sessionString);
+  return typeof sessionState.rum === 'number' && sessionState.rum > 0;
+};
 
 const useBrowserSdk = () => {
+  const hasReplayBeenInitedRef = useRef();
   const rrweb = useRrweb();
 
   const init = ({ config, user }) => {
     const tabId = v4();
-    const { replayIngestUrl, ...ddConfig } = config;
-    const shouldInitRrweb =  replayIngestUrl;
+    const { enableLogCollection, enableSessionRecording, replayIngestUrl, ...ddConfig } = config;
 
-    initDDBrowserSdk({ config: ddConfig, shouldInitRrweb, tabId, user });
+    initDDBrowserSdk({ config: ddConfig, hasReplayBeenInitedRef, tabId, user });
 
-    if (shouldInitRrweb) {
+    const shouldInitRrweb = getShouldInitRrweb();
+
+    if (enableSessionRecording && shouldInitRrweb && replayIngestUrl) {
       rrweb.init({ replayIngestUrl, tabId });
+      hasReplayBeenInitedRef.current = true;
     }
   };
 
