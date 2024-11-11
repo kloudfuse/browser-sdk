@@ -63,7 +63,7 @@ const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId, user }) => {
 const getShouldInitRrweb = () => {
   const sessionString = Cookies.get(SESSION_STORE_KEY);
   const sessionState = toSessionState(sessionString);
-  return typeof sessionState.rum === 'number' && sessionState.rum > 0;
+  return Number(sessionState.rum) > 0;
 };
 
 const useBrowserSdk = () => {
