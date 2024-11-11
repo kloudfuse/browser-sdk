@@ -74,7 +74,7 @@ const useBrowserSdk = () => {
     const tabId = v4();
     const { enableLogCollection, enableSessionRecording, replayIngestUrl, ...ddConfig } = config;
 
-    initDDBrowserSdk({ config: ddConfig, hasReplayBeenInitedRef, tabId, user });
+    initDDBrowserSdk({ config: ddConfig, hasReplayBeenInitedRef, tabId });
 
     const shouldInitRrweb = getShouldInitRrweb();
 
