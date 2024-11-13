@@ -2,7 +2,6 @@ import { datadogRum } from '@datadog/browser-rum';
 import { useRef } from 'react';
 import { record } from 'rrweb';
 
-
 const findStartAndEnd = (rrwebEvents) => {
   const start = rrwebEvents[0].timestamp;
   const end = rrwebEvents[rrwebEvents.length - 1].timestamp;
@@ -44,7 +43,7 @@ const useRrweb = () => {
           const index = indexRef.current;
 
           if (rrwebEvents.length) {
-            persistEvents({ index, replayIngestUrl, rrwebEvents, tabId })
+            persistEvents({ index, replayIngestUrl, rrwebEvents, tabId });
             rrwebEventsRef.current = [];
           }
 
@@ -99,17 +98,19 @@ const useRrweb = () => {
     }
   };
 
-  const saveEvents = ({ replayIngestUrl, tabId }) => () => {
-    const rrwebEvents = [...rrwebEventsRef.current];
-    const index = indexRef.current;
+  const saveEvents =
+    ({ replayIngestUrl, tabId }) =>
+    () => {
+      const rrwebEvents = [...rrwebEventsRef.current];
+      const index = indexRef.current;
 
-    if (rrwebEvents.length) {
-      persistEvents({ index, replayIngestUrl, rrwebEvents, tabId });
+      if (rrwebEvents.length) {
+        persistEvents({ index, replayIngestUrl, rrwebEvents, tabId });
 
-      rrwebEventsRef.current = [];
-      indexRef.current = index + 1;
-    }
-  }
+        rrwebEventsRef.current = [];
+        indexRef.current = index + 1;
+      }
+    };
 
   const init = ({ replayIngestUrl, tabId }) => {
     initDatadogContextInterval({ replayIngestUrl, tabId });
@@ -130,7 +131,7 @@ const useRrweb = () => {
   };
 
   const stopRecording = () => {
-    return stopRecordingRef.current || (() => { });
+    return stopRecordingRef.current || (() => {});
   };
 
   return {
