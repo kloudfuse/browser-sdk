@@ -45,6 +45,7 @@ const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId, user }) => {
     trackUserInteractions: true,
     trackResources: true,
     trackLongTasks: true,
+    trackViewsManually: config.trackViewsManually || false,
     version: config.version,
     beforeSend: (event) => {
       event.context.rrweb_tab_id = tabId;
@@ -104,9 +105,14 @@ const useBrowserSdk = () => {
     });
   };
 
+  const startView = (args) => {
+    datadogRum.startView(args);
+  };
+
   return {
     init,
     setUser,
+    startView,
   };
 };
 
