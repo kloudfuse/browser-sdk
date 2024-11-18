@@ -31,7 +31,7 @@ const isValidSessionString = (sessionString) => {
   );
 };
 
-const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId, user }) => {
+const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId }) => {
   const ddConfig = {
     applicationId: config.applicationId,
     clientToken: config.clientToken,
@@ -40,7 +40,7 @@ const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId, user }) => {
     proxy: config.proxy,
     service: config.service,
     sessionSampleRate: config.sessionSampleRate,
-    site: config.site,
+    site: config.site || '',
     sessionReplaySampleRate: 0,
     trackUserInteractions: true,
     trackResources: true,

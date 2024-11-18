@@ -1,6 +1,6 @@
 {
   "name": "kf-browser-sdk",
-  "version": "1.0.34",
+  "version": "1.0.39",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,7 @@
   "dependencies": {
     "@datadog/browser-logs": "^5.29.1",
     "@datadog/browser-rum": "^5.27.0",
+    "js-cookie": "^3.0.5",
     "react": "^18.3.1",
     "rrweb": "^2.0.0-alpha.4",
     "uuid": "^10.0.0"
