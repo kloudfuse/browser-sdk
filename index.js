@@ -1,9 +1,8 @@
 import { datadogLogs } from '@datadog/browser-logs';
 import { datadogRum } from '@datadog/browser-rum';
 import Cookies from 'js-cookie';
-import { useRef } from 'react';
 import { v4 } from 'uuid';
-import useRrweb from './useRrweb';
+import Rrweb from './Rrweb';
 
 const SESSION_STORE_KEY = '_dd_s';
 const SESSION_ENTRY_REGEXP = /^([a-zA-Z]+)=([a-z0-9-]+)$/;
@@ -31,7 +30,7 @@ const isValidSessionString = (sessionString) => {
   );
 };
 
-const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId, user }) => {
+const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId }) => {
   const ddConfig = {
     applicationId: config.applicationId,
     clientToken: config.clientToken,
@@ -40,7 +39,7 @@ const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId, user }) => {
     proxy: config.proxy,
     service: config.service,
     sessionSampleRate: config.sessionSampleRate,
-    site: config.site,
+    site: config.site || '',
     sessionReplaySampleRate: 0,
     trackUserInteractions: true,
     trackResources: true,
@@ -67,21 +66,23 @@ const getShouldInitRrweb = () => {
   return Number(sessionState.rum) > 0;
 };
 
-const useBrowserSdk = () => {
-  const hasReplayBeenInitedRef = useRef();
-  const rrweb = useRrweb();
+class BrowserSdk {
+  constructor() {
+    this.hasReplayBeenInitedRef = { current: false };
+    this.rrweb = new Rrweb();
+  }
 
-  const init = ({ config, user }) => {
+  init({ config }) {
     const tabId = v4();
     const { enableLogCollection, enableSessionRecording, replayIngestUrl, ...ddConfig } = config;
 
-    initDDBrowserSdk({ config: ddConfig, hasReplayBeenInitedRef, tabId });
+    initDDBrowserSdk({ config: ddConfig, hasReplayBeenInitedRef: this.hasReplayBeenInitedRef, tabId });
 
     const shouldInitRrweb = getShouldInitRrweb();
 
     if (enableSessionRecording && shouldInitRrweb && replayIngestUrl) {
-      rrweb.init({ replayIngestUrl, tabId });
-      hasReplayBeenInitedRef.current = true;
+      this.rrweb.init({ replayIngestUrl, tabId });
+      this.hasReplayBeenInitedRef.current = true;
     }
 
     if (enableLogCollection) {
@@ -94,26 +95,22 @@ const useBrowserSdk = () => {
         sessionSampleRate: 100,
       });
     }
-  };
+  }
 
-  const setUser = (user) => {
+  setUser(user) {
     const { id, email } = user;
 
     datadogRum.setUser({
       id,
       email,
     });
-  };
+  }
 
-  const startView = (args) => {
+  startView(args) {
     datadogRum.startView(args);
-  };
+  }
+}
 
-  return {
-    init,
-    setUser,
-    startView,
-  };
-};
+const browserSdk = new BrowserSdk();
 
-export default useBrowserSdk;
+export default browserSdk;
