@@ -1,6 +1,6 @@
 {
   "name": "kf-browser-sdk",
-  "version": "1.0.40",
+  "version": "1.0.46",
   "description": "",
   "main": "index.js",
   "scripts": {

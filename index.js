@@ -66,6 +66,23 @@ const getShouldInitRrweb = () => {
   return Number(sessionState.rum) > 0;
 };
 
+const getReplayIngestUrl = (proxy) => {
+  try {
+    if (proxy) {
+      if (proxy.indexOf('/') === 0) {
+        return `/rumrrweb`;
+      }
+
+      const url = new URL(proxy);
+      return `${url.origin}/rumrrweb`;
+    }
+
+    return null;
+  } catch (e) {
+    return null;
+  }
+};
+
 class BrowserSdk {
   constructor() {
     this.hasReplayBeenInitedRef = { current: false };
@@ -74,7 +91,9 @@ class BrowserSdk {
 
   init({ config }) {
     const tabId = v4();
-    const { enableLogCollection, enableSessionRecording, replayIngestUrl, ...ddConfig } = config;
+    const { enableLogCollection, enableSessionRecording, ...ddConfig } = config;
+
+    const replayIngestUrl = getReplayIngestUrl(config.proxy);
 
     initDDBrowserSdk({ config: ddConfig, hasReplayBeenInitedRef: this.hasReplayBeenInitedRef, tabId });
 
