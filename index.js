@@ -34,7 +34,8 @@ const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId }) => {
   const ddConfig = {
     applicationId: config.applicationId,
     clientToken: config.clientToken,
-    defaultPrivacyLevel: 'mask-user-input',
+    defaultPrivacyLevel: config.defaultPrivacyLevel || 'mask-user-input',
+    enablePrivacyForActionName: config.enablePrivacyForActionName || false,
     env: config.env,
     proxy: config.proxy,
     service: config.service,
@@ -51,6 +52,10 @@ const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId }) => {
 
       if (hasReplayBeenInitedRef.current) {
         event.context.rrweb_has_replay = true;
+      }
+
+      if (typeof config.beforeSend === 'function') {
+        return config.beforeSend(event);
       }
 
       return true;
