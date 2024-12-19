@@ -34,7 +34,7 @@ const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId }) => {
   const ddConfig = {
     applicationId: config.applicationId,
     clientToken: config.clientToken,
-    defaultPrivacyLevel: 'mask-user-input',
+    defaultPrivacyLevel: config.defaultPrivacyLevel || 'mask-user-input',
     enablePrivacyForActionName: config.enablePrivacyForActionName || false,
     env: config.env,
     proxy: config.proxy,
