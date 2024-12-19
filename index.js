@@ -54,8 +54,8 @@ const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId }) => {
         event.context.rrweb_has_replay = true;
       }
 
-      if (config.beforeSend) {
-        config.beforeSend(event);
+      if (typeof config.beforeSend === 'function') {
+        return config.beforeSend(event);
       }
 
       return true;
