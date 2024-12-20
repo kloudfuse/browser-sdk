@@ -105,7 +105,7 @@ class BrowserSdk {
     const shouldInitRrweb = getShouldInitRrweb();
 
     if (enableSessionRecording && shouldInitRrweb && replayIngestUrl) {
-      this.rrweb.init({ replayIngestUrl, tabId });
+      this.rrweb.init({ clientToken: ddConfig.clientToken, replayIngestUrl, tabId });
       this.hasReplayBeenInitedRef.current = true;
     }
 

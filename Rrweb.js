@@ -12,6 +12,7 @@ const findStartAndEnd = (rrwebEvents) => {
 
 class Rrweb {
   constructor() {
+    this.clientToken = null;
     this.datadogRumContextRef = {
       current: {
         applicationId: null,
@@ -30,6 +31,7 @@ class Rrweb {
     this.stopRecordingRef = {
       current: null,
     };
+
   }
 
   initDatadogContextInterval({ replayIngestUrl, tabId }) {
@@ -102,7 +104,7 @@ class Rrweb {
       formData.append('event', JSON.stringify(event));
       formData.append('segment', JSON.stringify(segment));
 
-      fetch(replayIngestUrl, {
+      fetch(`${replayIngestUrl}${this.clientToken ? `?kf-api-key=${this.clientToken}`: ''}`, {
         method: 'POST',
         body: formData,
       });
@@ -123,7 +125,8 @@ class Rrweb {
     };
   }
 
-  init({ replayIngestUrl, tabId }) {
+  init({ clientToken, replayIngestUrl, tabId }) {
+    this.clientToken = clientToken;
     this.initDatadogContextInterval({ replayIngestUrl, tabId });
 
     setInterval(() => {
