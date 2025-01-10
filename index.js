@@ -129,7 +129,7 @@ class BrowserSdk {
     }
   }
 
-  addError(error, context) {
+  addError(error, context = {}) {
     datadogRum.addError(error, context);
   }
 
