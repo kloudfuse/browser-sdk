@@ -1,12 +1,12 @@
-import { datadogLogs } from '@datadog/browser-logs';
-import { datadogRum } from '@datadog/browser-rum';
-import Cookies from 'js-cookie';
-import { v4 } from 'uuid';
-import Rrweb from './Rrweb';
+import { datadogLogs } from "@datadog/browser-logs";
+import { datadogRum } from "@datadog/browser-rum";
+import Cookies from "js-cookie";
+import { v4 } from "uuid";
+import Rrweb from "./Rrweb";
 
-const SESSION_STORE_KEY = '_dd_s';
+const SESSION_STORE_KEY = "_dd_s";
 const SESSION_ENTRY_REGEXP = /^([a-zA-Z]+)=([a-z0-9-]+)$/;
-const SESSION_ENTRY_SEPARATOR = '&';
+const SESSION_ENTRY_SEPARATOR = "&";
 
 const toSessionState = (sessionString) => {
   const session = {};
@@ -34,13 +34,13 @@ const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId }) => {
   const ddConfig = {
     applicationId: config.applicationId,
     clientToken: config.clientToken,
-    defaultPrivacyLevel: config.defaultPrivacyLevel || 'mask-user-input',
+    defaultPrivacyLevel: config.defaultPrivacyLevel || "mask-user-input",
     enablePrivacyForActionName: config.enablePrivacyForActionName || false,
     env: config.env,
     proxy: config.proxy,
     service: config.service,
     sessionSampleRate: config.sessionSampleRate,
-    site: config.site || '',
+    site: config.site || "",
     sessionReplaySampleRate: 0,
     trackUserInteractions: true,
     trackResources: true,
@@ -54,7 +54,7 @@ const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId }) => {
         event.context.rrweb_has_replay = true;
       }
 
-      if (typeof config.beforeSend === 'function') {
+      if (typeof config.beforeSend === "function") {
         return config.beforeSend(event);
       }
 
@@ -74,7 +74,7 @@ const getShouldInitRrweb = () => {
 const getReplayIngestUrl = (proxy) => {
   try {
     if (proxy) {
-      if (proxy.indexOf('/') === 0) {
+      if (proxy.indexOf("/") === 0) {
         return `/rumrrweb`;
       }
 
@@ -100,12 +100,20 @@ class BrowserSdk {
 
     const replayIngestUrl = getReplayIngestUrl(config.proxy);
 
-    initDDBrowserSdk({ config: ddConfig, hasReplayBeenInitedRef: this.hasReplayBeenInitedRef, tabId });
+    initDDBrowserSdk({
+      config: ddConfig,
+      hasReplayBeenInitedRef: this.hasReplayBeenInitedRef,
+      tabId,
+    });
 
     const shouldInitRrweb = getShouldInitRrweb();
 
     if (enableSessionRecording && shouldInitRrweb && replayIngestUrl) {
-      this.rrweb.init({ clientToken: ddConfig.clientToken, replayIngestUrl, tabId });
+      this.rrweb.init({
+        clientToken: ddConfig.clientToken,
+        replayIngestUrl,
+        tabId,
+      });
       this.hasReplayBeenInitedRef.current = true;
     }
 
@@ -115,10 +123,14 @@ class BrowserSdk {
         proxy: ddConfig.proxy,
         site: ddConfig.site,
         forwardErrorsToLogs: true,
-        forwardConsoleLogs: 'all',
+        forwardConsoleLogs: "all",
         sessionSampleRate: 100,
       });
     }
+  }
+
+  addError(error, context) {
+    datadogRum.addError(error, context);
   }
 
   setUser(user) {
