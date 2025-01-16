@@ -129,17 +129,25 @@ class BrowserSdk {
     }
   }
 
-  addError(error, context) {
-    datadogRum.addError(error, context);
+  addError(error, context = {}) {
+    try {
+      datadogRum.addError(error, context);
+    } catch (e) {
+      console.error('Failed to addError', e);
+    }
   }
 
   setUser(user) {
-    const { id, email } = user;
+    try {
+      const { id, email } = user;
 
-    datadogRum.setUser({
-      id,
-      email,
-    });
+      datadogRum.setUser({
+        id,
+        email,
+      });
+    } catch (e) {
+      console.error('Failed to setUser', e);
+    }
   }
 
   startView(args) {
