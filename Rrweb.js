@@ -10,6 +10,25 @@ const findStartAndEnd = (rrwebEvents) => {
   };
 };
 
+const getMaskSettings = (defaultPrivacyLevel) => {
+  if (defaultPrivacyLevel === 'mask-user-input') {
+    return {
+      maskAllInputs: true,
+    };
+  }
+
+  if (defaultPrivacyLevel === 'mask') {
+    return {
+      maskAllInputs: true,
+      maskTextFn: (t) => {
+        return t.replace(/[a-z]/g, '*');
+      },
+    };
+  }
+
+  return {};
+};
+
 class Rrweb {
   constructor() {
     this.clientToken = null;
@@ -20,6 +39,7 @@ class Rrweb {
         viewId: null,
       },
     };
+
     this.indexRef = {
       current: 0,
     };
@@ -31,10 +51,9 @@ class Rrweb {
     this.stopRecordingRef = {
       current: null,
     };
-
   }
 
-  initDatadogContextInterval({ replayIngestUrl, tabId }) {
+  initDatadogContextInterval({ defaultPrivacyLevel, replayIngestUrl, tabId }) {
     setInterval(() => {
       const context = datadogRum.getInternalContext();
       if (context && context.session_id) {
@@ -60,7 +79,7 @@ class Rrweb {
           }
 
           this.indexRef.current = 0;
-          this.startRecording();
+          this.startRecording({ defaultPrivacyLevel });
         }
 
         this.datadogRumContextRef.current = {
@@ -125,17 +144,18 @@ class Rrweb {
     };
   }
 
-  init({ clientToken, replayIngestUrl, tabId }) {
+  init({ clientToken, defaultPrivacyLevel, replayIngestUrl, tabId }) {
     this.clientToken = clientToken;
-    this.initDatadogContextInterval({ replayIngestUrl, tabId });
+    this.initDatadogContextInterval({ defaultPrivacyLevel, replayIngestUrl, tabId });
 
     setInterval(() => {
       requestAnimationFrame(this.saveEvents({ replayIngestUrl, tabId }));
     }, 5000);
   }
 
-  startRecording() {
+  startRecording({ defaultPrivacyLevel }) {
     this.stopRecordingRef.current = record({
+      ...getMaskSettings(defaultPrivacyLevel),
       checkoutEveryNms: 1 * 60 * 1000, // checkout every minute
       emit: (event) => {
         this.rrwebEventsRef.current = [...this.rrwebEventsRef.current, event];
