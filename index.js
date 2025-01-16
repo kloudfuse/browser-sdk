@@ -111,6 +111,7 @@ class BrowserSdk {
     if (enableSessionRecording && shouldInitRrweb && replayIngestUrl) {
       this.rrweb.init({
         clientToken: ddConfig.clientToken,
+        defaultPrivacyLevel: ddConfig.defaultPrivacyLevel,
         replayIngestUrl,
         tabId,
       });
