@@ -26,7 +26,13 @@ const getMaskSettings = (defaultPrivacyLevel) => {
     };
   }
 
-  return {};
+  if (defaultPrivacyLevel === 'allow') {
+    return {};
+  }
+
+  return {
+    maskAllInputs: true,
+  };
 };
 
 class Rrweb {
