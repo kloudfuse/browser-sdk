@@ -130,6 +130,14 @@ class BrowserSdk {
     }
   }
 
+  addAction(property, context = {}) {
+    try {
+      datadogRum.addAction(property, context);
+    } catch (e) {
+      console.error('Failed to addAction', e);
+    }
+  }
+
   addError(error, context = {}) {
     try {
       datadogRum.addError(error, context);
