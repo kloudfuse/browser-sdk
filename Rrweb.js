@@ -18,8 +18,13 @@ const getMaskSettings = (defaultPrivacyLevel) => {
   }
 
   if (defaultPrivacyLevel === 'mask') {
+    try {
+      document.body.classList.add("rr-mask");
+    } catch (e) {
+    }
     return {
       maskAllInputs: true,
+      maskTextClass:  /[\s\S]*/,
       maskTextFn: (t) => {
         return t.replace(/[a-z]/g, '*');
       },
