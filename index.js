@@ -13,7 +13,7 @@ const COMMA_SEPARATED_KEY_VALUE = /([\w-]+)\s*=\s*([^;]+)/g;
 let KF_VIEW_TRACKER = {};
 let KF_SESSION_START = null;
 
-function findCommaSeparatedValue(rawString, name) {
+const findCommaSeparatedValue = (rawString, name) => {
   COMMA_SEPARATED_KEY_VALUE.lastIndex = 0
   // eslint-disable-next-line no-constant-condition
   while (true) {
@@ -28,14 +28,15 @@ function findCommaSeparatedValue(rawString, name) {
   }
 }
 
-function isValidSessionString(sessionString) {
+const isValidSessionString = (sessionString) => {
   return (
     !!sessionString &&
-    (sessionString.indexOf(SESSION_ENTRY_SEPARATOR) !== -1 || SESSION_ENTRY_REGEXP.test(sessionString))
-  )
-}
+    (sessionString.indexOf(SESSION_ENTRY_SEPARATOR) !== -1 ||
+      SESSION_ENTRY_REGEXP.test(sessionString))
+  );
+};
 
-function toSessionState(sessionString) {
+const toSessionState = (sessionString) => {
   const session = {}
   if (isValidSessionString(sessionString)) {
     sessionString.split(SESSION_ENTRY_SEPARATOR).forEach((entry) => {
@@ -60,28 +61,6 @@ const findSessionStart = () => {
   let sessionState = toSessionState(cookieValue)
   return Number(sessionState.created)
 }
-
-const toSessionState = (sessionString) => {
-  const session = {};
-  if (isValidSessionString(sessionString)) {
-    sessionString.split(SESSION_ENTRY_SEPARATOR).forEach((entry) => {
-      const matches = SESSION_ENTRY_REGEXP.exec(entry);
-      if (matches !== null) {
-        const [, key, value] = matches;
-        session[key] = value;
-      }
-    });
-  }
-  return session;
-};
-
-const isValidSessionString = (sessionString) => {
-  return (
-    !!sessionString &&
-    (sessionString.indexOf(SESSION_ENTRY_SEPARATOR) !== -1 ||
-      SESSION_ENTRY_REGEXP.test(sessionString))
-  );
-};
 
 const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId }) => {
   const ddConfig = {
