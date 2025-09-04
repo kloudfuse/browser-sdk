@@ -47,7 +47,7 @@ const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId }) => {
     trackLongTasks: true,
     trackViewsManually: config.trackViewsManually || false,
     version: config.version,
-    beforeSend: (event) => {
+    beforeSend: (event, context) => {
       event.context.rrweb_tab_id = tabId;
 
       if (hasReplayBeenInitedRef.current) {
@@ -55,7 +55,7 @@ const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId }) => {
       }
 
       if (typeof config.beforeSend === "function") {
-        return config.beforeSend(event);
+        return config.beforeSend(event, context);
       }
 
       return true;
