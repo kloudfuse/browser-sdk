@@ -148,12 +148,7 @@ class BrowserSdk {
 
   setUser(user) {
     try {
-      const { id, email } = user;
-
-      datadogRum.setUser({
-        id,
-        email,
-      });
+      datadogRum.setUser(user);
     } catch (e) {
       console.error('Failed to setUser', e);
     }
