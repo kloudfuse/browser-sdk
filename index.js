@@ -208,6 +208,51 @@ class BrowserSdk {
     }
   }
 
+  // global context methods
+  clearGlobalContext() {
+    try {
+      datadogRum.clearGlobalContext();
+    } catch (e) {
+      console.error('Failed to clearGlobalContext', e);
+    }
+  }
+
+  removeGlobalContextProperty(key) {
+    try {
+      datadogRum.removeGlobalContextProperty(key);
+    } catch (e) {
+      console.error('Failed to removeGlobalContextProperty', e);
+    }
+  }
+
+  setGlobalContext(context) {
+    try {
+      datadogRum.setGlobalContext(context);
+    } catch (e) {
+      console.error('Failed to setGlobalContext', e);
+    }
+  }
+  // end global context methods
+
+
+  // view context methods
+  setViewContext(context) {
+    try {
+      datadogRum.setViewContext(context);
+    } catch (e) {
+      console.error('Failed to setViewContext', e);
+    }
+  }
+
+  setViewContextProperty(key, value) {
+    try {
+      datadogRum.setViewContextProperty(key, value);
+    } catch (e) {
+      console.error('Failed to setViewContextProperty', e);
+    }
+  }
+  // end view context methods
+
   startDurationVital(...args) {
     try {
       datadogRum.startDurationVital(...args);
