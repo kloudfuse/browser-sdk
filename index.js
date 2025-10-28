@@ -217,6 +217,14 @@ class BrowserSdk {
     }
   }
 
+  getGlobalContext() {
+    try {
+      return datadogRum.getGlobalContext();
+    } catch (e) {
+      console.error('Failed to getGlobalContext', e);
+    }
+  }
+
   removeGlobalContextProperty(key) {
     try {
       datadogRum.removeGlobalContextProperty(key);
