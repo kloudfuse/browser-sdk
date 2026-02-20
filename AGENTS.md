@@ -3,6 +3,7 @@
 > RUM browser SDK — wraps Datadog RUM/Logs with Kloudfuse-specific context and rrweb session replay.
 > GitHub: https://github.com/kloudfuse/browser-sdk
 > npm: `kf-browser-sdk`
+> Note: `CLAUDE.md` in this repo is a symlink to this file.
 
 ## Quick Start
 
