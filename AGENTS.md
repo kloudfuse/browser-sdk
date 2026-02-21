@@ -57,8 +57,10 @@ and `Rrweb.js` as-is to npm.
 
 1. **RUM events** — Datadog RUM SDK collects views, actions, resources, errors,
    long tasks. The `beforeSend` hook enriches each event with Kloudfuse-specific
-   context (`rrweb_tab_id`, `rrweb_has_replay`, `kf_session_start_ms`,
-   `kf_view_start_ms`). Events are sent via the configured `proxy` URL.
+   context (`rrweb_tab_id`, `kf_session_start_ms`, `kf_view_start_ms`).
+   `rrweb_has_replay` is only set (to `true`) when rrweb replay was initialized
+   for this session; it is absent otherwise. Events are sent via the configured
+   `proxy` URL.
 
 2. **Session replay** — rrweb records DOM mutations, input events, and canvas.
    Events are batched every 5 seconds and POSTed as FormData to `/rumrrweb`
@@ -93,14 +95,14 @@ Singleton class wrapping `@datadog/browser-rum` and `@datadog/browser-logs`.
   is true AND Datadog session cookie `_dd_s` has `rum > 0`)
 - Optionally initializes Datadog Logs forwarding
 
-**Public API methods** (all wrapped in try-catch):
-- `init({ config })` — Initialize the SDK
+**Public API methods** (most wrapped in try-catch — exceptions noted below):
+- `init({ config })` — Initialize the SDK (**no try-catch** — errors propagate to caller)
 - `addAction(property, context)` — Track custom user action
 - `addError(error, context)` — Log an error
 - `addTiming(...args)` — Record custom timing
 - `addDurationVital(...args)` / `startDurationVital` / `stopDurationVital` — Duration metrics
 - `setUser(user)` — Set user identity
-- `startView(args)` — Manual view tracking
+- `startView(args)` — Manual view tracking (**no try-catch** — errors propagate to caller)
 - `clearGlobalContext()` / `getGlobalContext()` / `setGlobalContext(context)` — Global context
 - `setGlobalContextProperty(key, value)` / `removeGlobalContextProperty(key)` — Per-key context
 - `setViewContext(context)` / `setViewContextProperty(key, value)` — View-level context
@@ -162,8 +164,10 @@ browserSdk.init({
 
 - **Singleton pattern**: `BrowserSdk` exports a single instance. All methods
   are called on this shared instance.
-- **Defensive try-catch**: Every public method wraps Datadog SDK calls in
+- **Defensive try-catch**: Most public methods wrap Datadog SDK calls in
   try-catch to prevent SDK errors from crashing the host application.
+  Exceptions: `init()` and `startView()` have no try-catch — errors propagate
+  to the caller.
 - **Datadog session cookie parsing**: The SDK reads `_dd_s` cookie directly
   to determine session state and replay eligibility. The cookie format is
   `key1=value1&key2=value2` (not standard cookie format).
@@ -185,6 +189,16 @@ browserSdk.init({
 6. **View tracker memory**: `KF_VIEW_TRACKER` object grows unbounded over the
    session lifetime (one entry per view ID). Long-lived SPAs may accumulate
    entries.
+7. **`kf_view_start_ms` bug**: The `beforeSend` hook looks up
+   `KF_VIEW_TRACKER[event.id]` instead of `KF_VIEW_TRACKER[viewId]`. Since
+   `event.id` is the event's own unique ID (not the view ID) for non-view
+   events, `kf_view_start_ms` is `undefined` for actions, errors, resources,
+   and long tasks. Only view events get a valid value.
+8. **`stopRecording` is a no-op**: `Rrweb.stopRecording()` returns the stored
+   stop function (or a fallback no-op) but never calls it. When a new session
+   is detected in `initDatadogContextInterval`, the code calls
+   `this.stopRecording()` expecting the previous recording to stop, but the
+   returned function is discarded without being invoked.
 
 ## Cross-Service Context
 
