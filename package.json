@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "esbuild browser.js --bundle --minify --outfile=dist/kf-browser-sdk.min.js --format=iife --target=es2017",
+    "deploy": "npm run build && bash -c 'source .env && aws s3 cp dist/kf-browser-sdk.min.js s3://$S3_BUCKET/kf-browser-sdk.min.js --region $AWS_REGION --content-type application/javascript && aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths \"/kf-browser-sdk.min.js\" --region $AWS_REGION'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
