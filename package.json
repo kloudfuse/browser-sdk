@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "esbuild browser.js --bundle --minify --outfile=dist/kf-browser-sdk.min.js --format=iife --target=es2017",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -14,5 +15,8 @@
     "js-cookie": "^3.0.5",
     "rrweb": "^2.0.0-alpha.4",
     "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.3"
   }
 }
