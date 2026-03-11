@@ -4,6 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "bash -c 'VERSION=$(node -p \"require(\\\"./package.json\\\").version\") && esbuild browser.js --bundle --minify --outfile=dist/kf-browser-sdk-v$VERSION.min.js --format=iife --target=es2017 && cp dist/kf-browser-sdk-v$VERSION.min.js dist/kf-browser-sdk.min.js'",
+    "push": "bash -c 'source .env && VERSION=$(node -p \"require(\\\"./package.json\\\").version\") && aws s3 cp dist/kf-browser-sdk-v$VERSION.min.js s3://$S3_BUCKET/browser-sdk/kf-browser-sdk-v$VERSION.min.js --region $AWS_REGION --content-type application/javascript && aws s3 cp dist/kf-browser-sdk.min.js s3://$S3_BUCKET/browser-sdk/kf-browser-sdk.min.js --region $AWS_REGION --content-type application/javascript'",
+    "deploy": "bash deploy.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -14,5 +17,8 @@
     "js-cookie": "^3.0.5",
     "rrweb": "^2.0.0-alpha.4",
     "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.3"
   }
 }
