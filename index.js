@@ -72,7 +72,7 @@ const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId }) => {
     proxy: config.proxy,
     service: config.service,
     sessionSampleRate: config.sessionSampleRate,
-    site: config.site || "",
+    ...(config.site ? { site: config.site } : {}),
     sessionReplaySampleRate: 0,
     trackUserInteractions: true,
     trackResources: true,
@@ -169,7 +169,7 @@ class BrowserSdk {
       datadogLogs.init({
         clientToken: ddConfig.clientToken,
         proxy: ddConfig.proxy,
-        site: ddConfig.site,
+        ...(ddConfig.site ? { site: ddConfig.site } : {}),
         forwardErrorsToLogs: true,
         forwardConsoleLogs: "all",
         sessionSampleRate: 100,

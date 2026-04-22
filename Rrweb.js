@@ -67,7 +67,7 @@ class Rrweb {
   initDatadogContextInterval({ defaultPrivacyLevel, replayIngestUrl, tabId }) {
     setInterval(() => {
       const context = datadogRum.getInternalContext();
-      if (context && context.session_id) {
+      if (context && context.session_id && context.view) {
         const { application_id, session_id, view } = context;
 
         // we should start a new replay recording
