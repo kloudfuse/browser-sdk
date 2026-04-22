@@ -80,6 +80,9 @@ const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId }) => {
     trackViewsManually: config.trackViewsManually || false,
     version: config.version,
     excludedActivityUrls: config.excludedActivityUrls,
+    allowedTracingUrls: config.allowedTracingUrls,
+    traceSampleRate: config.traceSampleRate,
+    traceContextInjection: config.traceContextInjection,
     beforeSend: (event, context) => {
       event.context.rrweb_tab_id = tabId;
 
