@@ -78,7 +78,7 @@ ingress routes: `/ddrumproxy`, `/rumrrweb`).
 browser-sdk/
   index.js       # BrowserSdk class — main entry point (singleton export)
   Rrweb.js       # Rrweb class — session replay recording and persistence
-  package.json   # npm config: kf-browser-sdk@1.0.65
+  package.json   # npm config: kf-browser-sdk@2.0.0
   LICENSE        # Apache-2.0
 ```
 
@@ -154,8 +154,8 @@ browserSdk.init({
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@datadog/browser-rum` | ^5.27.0 | RUM event collection (views, actions, errors, resources) |
-| `@datadog/browser-logs` | ^5.29.1 | Browser log forwarding |
+| `@datadog/browser-rum` | ^6.32.0 | RUM event collection (views, actions, errors, resources) |
+| `@datadog/browser-logs` | ^6.32.0 | Browser log forwarding |
 | `rrweb` | ^2.0.0-alpha.4 | DOM recording for session replay |
 | `uuid` | ^10.0.0 | Tab ID generation |
 | `js-cookie` | ^3.0.5 | Datadog session cookie parsing |

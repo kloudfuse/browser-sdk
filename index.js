@@ -72,7 +72,7 @@ const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId }) => {
     proxy: config.proxy,
     service: config.service,
     sessionSampleRate: config.sessionSampleRate,
-    site: config.site || "",
+    ...(config.site ? { site: config.site } : {}),
     sessionReplaySampleRate: 0,
     trackUserInteractions: true,
     trackResources: true,
@@ -80,6 +80,9 @@ const initDDBrowserSdk = ({ config, hasReplayBeenInitedRef, tabId }) => {
     trackViewsManually: config.trackViewsManually || false,
     version: config.version,
     excludedActivityUrls: config.excludedActivityUrls,
+    allowedTracingUrls: config.allowedTracingUrls,
+    traceSampleRate: config.traceSampleRate,
+    traceContextInjection: config.traceContextInjection,
     beforeSend: (event, context) => {
       event.context.rrweb_tab_id = tabId;
 
@@ -169,7 +172,7 @@ class BrowserSdk {
       datadogLogs.init({
         clientToken: ddConfig.clientToken,
         proxy: ddConfig.proxy,
-        site: ddConfig.site,
+        ...(ddConfig.site ? { site: ddConfig.site } : {}),
         forwardErrorsToLogs: true,
         forwardConsoleLogs: "all",
         sessionSampleRate: 100,
