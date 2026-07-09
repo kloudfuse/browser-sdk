@@ -8,12 +8,23 @@
 ## Quick Start
 
 ```bash
-npm install           # Install dependencies (no build step — ships as ES6 modules)
+npm install           # Install dependencies
 npm test              # Placeholder only (no tests configured)
+npm run build         # esbuild bundles browser.js into dist/ (CDN artifact)
+npm run deploy        # deploy.sh: build + S3 upload + CloudFront invalidation
 ```
 
-There is no build system (Webpack, Rollup, etc.). The package ships `index.js`
-and `Rrweb.js` as-is to npm.
+There are two distribution channels:
+
+1. **npm** — ships `index.js` and `Rrweb.js` as-is (plain ES6 modules, no
+   transpilation).
+2. **CDN** — `npm run build` bundles `browser.js` with esbuild
+   (`--bundle --minify --format=iife --target=es2018`) into
+   `dist/kf-browser-sdk-v<version>.min.js` and `dist/kf-browser-sdk.min.js`,
+   exposing the singleton as `window.KfBrowserSdk`. `npm run deploy`
+   (`deploy.sh`) builds, uploads both bundles to S3, and creates or
+   invalidates a CloudFront distribution — credentials/config come from
+   `.env` (see `.env.example`). See README.md for the script-tag install.
 
 ## Architecture
 
@@ -78,7 +89,12 @@ ingress routes: `/ddrumproxy`, `/rumrrweb`).
 browser-sdk/
   index.js       # BrowserSdk class — main entry point (singleton export)
   Rrweb.js       # Rrweb class — session replay recording and persistence
-  package.json   # npm config: kf-browser-sdk@2.0.0
+  browser.js     # CDN bundle entry — assigns the singleton to window.KfBrowserSdk
+  dist/          # Committed CDN bundle (kf-browser-sdk.min.js)
+  deploy.sh      # Build + S3 upload + CloudFront create/invalidate
+  .env.example   # Deploy config template: S3_BUCKET, CLOUDFRONT_DISTRIBUTION_ID, AWS_REGION
+  README.md      # Install (npm + CDN script tag), config table, build/deploy docs
+  package.json   # npm config: kf-browser-sdk@2.0.0; build/push/deploy scripts
   LICENSE        # Apache-2.0
 ```
 
@@ -145,6 +161,10 @@ browserSdk.init({
     enableLogCollection: true,      // Enable browser log forwarding
     trackViewsManually: false,      // Manual view tracking mode
     site: '',                       // Datadog site (usually empty for proxy mode)
+    excludedActivityUrls: [],       // URLs excluded from page-activity tracking
+    allowedTracingUrls: [],         // URLs that get APM trace headers injected
+    traceSampleRate: 100,           // % of traces to sample (0-100)
+    traceContextInjection: 'all',   // Trace context injection mode
     beforeSend: (event, context) => true,  // Custom event filter/modifier
   }
 });
@@ -160,6 +180,8 @@ browserSdk.init({
 | `uuid` | ^10.0.0 | Tab ID generation |
 | `js-cookie` | ^3.0.5 | Datadog session cookie parsing |
 
+Dev dependency: `esbuild` (^0.27.3) — bundles `browser.js` for the CDN artifact.
+
 ## Patterns & Conventions
 
 - **Singleton pattern**: `BrowserSdk` exports a single instance. All methods
@@ -171,7 +193,8 @@ browserSdk.init({
 - **Datadog session cookie parsing**: The SDK reads `_dd_s` cookie directly
   to determine session state and replay eligibility. The cookie format is
   `key1=value1&key2=value2` (not standard cookie format).
-- **No TypeScript**: Plain ES6 JavaScript with no build step.
+- **No TypeScript**: Plain ES6 JavaScript. The npm package ships untranspiled;
+  only the CDN bundle goes through esbuild.
 - **No tests**: No test framework configured.
 
 ## Gotchas & Pitfalls
@@ -184,8 +207,10 @@ browserSdk.init({
    (set to 0). Kloudfuse uses rrweb instead. Do not enable Datadog's replay.
 4. **Replay auth via query param**: The `kf-api-key` is passed as a URL query
    parameter to `/rumrrweb`. This is visible in network logs.
-5. **No build step**: Changes to `index.js` or `Rrweb.js` are published
-   directly. There is no transpilation or bundling.
+5. **Two artifacts to keep in sync**: npm publishes `index.js`/`Rrweb.js`
+   untranspiled, but the CDN serves the esbuild bundle. After changing
+   `index.js` or `Rrweb.js`, run `npm run build` (and `npm run deploy` to
+   update S3/CloudFront) or the committed `dist/` bundle goes stale.
 6. **View tracker memory**: `KF_VIEW_TRACKER` object grows unbounded over the
    session lifetime (one entry per view ID). Long-lived SPAs may accumulate
    entries.
